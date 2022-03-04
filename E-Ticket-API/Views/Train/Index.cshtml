@@ -1,0 +1,119 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+
+<div class="row">
+    <div class="col-md-2">
+        Tren Adı:
+    </div>
+    <div class="col-md-10">
+        <p id="trainName"></p>
+    </div>
+</div>
+<br />
+<br />
+
+<div class="row">
+    <div class="col-md-2">
+        Vagon Bilgileri:
+    </div>
+    <div class="col-md-10">
+        <ul id="vagons" class="list-group">
+
+        </ul>
+    </div>
+</div>
+<br />
+<br />
+
+<div class="row">
+    <div class="col-md-2">
+        Kişi sayısı (0-10)
+    </div>
+    <div class="col-md-4">
+        <input type="number" id="kisiSayisi" name="kisiSayisi" min="0" max="10">
+    </div>
+    <div class="col-md-4">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+            <label class="form-check-label" for="flexCheckDefault">
+                Kişiler farklı vagonlara yerleştirilsin mi?
+            </label>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <button type="button" class="btn btn-primary" onclick="CreateTicket()">
+            Bilet Ara.
+        </button>
+    </div>
+</div>
+
+
+<div class="row">
+    <div>
+        <label>
+            Output :
+        </label>
+    </div>
+    <div>
+        <p id="output">
+            
+        </p>
+    </div>
+</div>
+
+<script>
+
+    function LoadTrainInfo() {
+
+        var ul = $("#vagons");
+        ul.empty();
+
+        $.ajax({
+            method: "GET",
+            url: "../api/trains"
+        }).done(function (train) {
+
+            if (train == null)
+                return;
+
+            document.getElementById("trainName").innerHTML = train.Name;
+
+            for (var i = 0; i < train.Vagons.length; i++) {
+                var vag = train.Vagons[i];
+
+
+                var li = $("<li class='list-group-item'>" + "Vagon Adı: " + vag.Name + "= " + "  " + "Kapasite: " + vag.Capacity + " " + "  " + "Dolu Koltuk Sayısı: " + vag.NumberOfFullSeats + "</li > ")
+
+                ul.append(li);
+            }
+        }).fail(function () {
+            alert("Hata oluştu.")
+        });
+    }
+    $(function () {
+        LoadTrainInfo();
+    });
+
+    function CreateTicket() {
+        var ticket = {
+            RezervasyonYapilacakKisiSayisi: parseInt($('#kisiSayisi').val()),
+            KisilerFarkliVagonlaraYerlestirilebilir: $('#flexCheckDefault').prop('checked') == true ? "true" : "false",
+        }
+        $.ajax({
+
+            url: '../api/trains/createticket',
+            type: "POST",
+            dataType: 'json',
+            data: ticket,
+            success: function (data) {
+
+                document.getElementById("output").innerHTML = data;
+            }
+        });
+    };
+
+
+
+</script>
